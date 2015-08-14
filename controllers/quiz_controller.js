@@ -57,22 +57,17 @@ exports.answer = function(req, res){
  	var quiz = models.Quiz.build(req.body.quiz);
 
  	//validaciones de los campos de tabla
- 	var errors = quiz.validate();
- 	if(errors){
- 		var i=0;
- 		var errores = new Array();
- 		for (var prop in errors){
- 			errores[i++] = {
- 				message: errors[prop]
- 			};
- 		}
- 			res.render('quizes/new', {quiz : quiz, errors: errores});
- 	}else{
+ 	quiz.validate().then(function(err) {
+ 		if(err){
+ 			res.render('quizes/new', {quiz : quiz, errors: err.errors});
+ 		} else{
 			//guarda en l BD los campos pregunta y respuesta de quiz
 		 	quiz.save({fields: ["pregunta", "respuesta"]}).then(function(){
 		 		res.redirect('/quizes');
 		 	})// redireccion (url relativo) lista de preguntas
-	}
+		}
+ 	})
+ 	
 };
 
  exports.edit = function(req, res){
@@ -98,4 +93,12 @@ exports.answer = function(req, res){
   	}
   	);
   }
+
+  exports.destroy = function(req, res){
+  	req.quiz.destroy().then( function() {
+  		res.redirect('/quizes');
+  	}).catch( function(error){
+  		next(error);
+  	});
+  };
  	
